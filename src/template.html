@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Singapore Hill Climbers</title>
+<title>🇸🇬 Singapore Hill Climbers ⛰️</title>
 <style>
   :root{
     --bg:#0a0e13; --card:#111922; --card2:#16212c; --line:#24323f; --ink:#e9eef2; --mute:#8b9ba7;
@@ -106,7 +106,7 @@
     <div class="sec"><h2>Scenarios</h2><div class="cards" id="scenarios"></div></div>
     <div class="sec"><h2>Places</h2><div class="chips" id="chips"></div></div>
     <details>
-      <summary>How this works and what to trust</summary>
+      <summary>How this works</summary>
       <p><b>Setup.</b> The map is a grid of ground heights. Each climber sees only the slope under its feet and takes a step using one of four update rules: plain gradient descent (SGD), SGD with momentum, AdamW, and a Muon-style rule. The loss is minus the elevation, so going downhill in loss means going uphill on the ground.</p>
       <p><b>AdamW and rotation.</b> (Weight decay is set to zero here, so this is plain Adam under the AdamW name.) AdamW rescales each coordinate separately, so its path changes when you rotate the axes. SGD, Momentum and Muon do not care about rotation.</p>
       <p><b>Muon on a map.</b> Muon orthogonalises the update matrix. Here the parameters are a 2-vector, which is a 1&times;2 matrix, so the orthogonalised step is just the momentum direction at unit length. That makes it a normalised-gradient method, which is why it sits awkwardly on a 2D map.</p>
