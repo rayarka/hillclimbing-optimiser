@@ -73,6 +73,39 @@
   .sub h3{margin:8px 0 2px;font-size:13px;color:var(--gold);font-weight:600}
   .fname{font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
   footer{max-width:1500px;margin:0 auto;padding:0 22px 30px;color:var(--mute);font-size:12.5px}
+
+  /* ---- meet the climbers ---- */
+  .lede{margin:0 0 12px;color:#b5c2cb;font-size:13.5px;max-width:820px}
+  .lede i{color:var(--ink)}
+  .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (max-width:700px){.opts{grid-template-columns:1fr}}
+  .opt{background:var(--card2);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:10px;padding:11px 13px 12px;display:flex;flex-direction:column;gap:8px}
+  .opt .top{display:flex;align-items:center;gap:8px}
+  .opt .top svg{flex:none;color:var(--c)}
+  .opt h3{margin:0;font-size:16px;color:var(--c);letter-spacing:-.005em}
+  .opt .tag{margin-left:auto;font-size:11.5px;color:var(--mute);font-style:italic}
+  .opt .story{margin:0;font-size:13.5px;color:#d3dce2}
+  .opt code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--c);align-self:flex-start}
+  .opt dl{margin:0;font-size:12.5px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;color:#b5c2cb}
+  .opt dt{color:var(--mute);font-weight:600;white-space:nowrap} .opt dd{margin:0}
+  .opt .tryit{margin-top:auto;align-self:flex-start;font:inherit;font-size:12.5px;color:var(--c);background:none;border:1px solid var(--c);border-radius:999px;padding:3px 11px;cursor:pointer;opacity:.9}
+  .opt .tryit:hover{background:var(--c);color:#0a0e13;opacity:1}
+  details summary{font-size:14px}
+  details p b:first-child{color:var(--gold)}
+  .callout{margin:10px 0 4px;padding:9px 12px;border-left:3px solid var(--red);background:rgba(239,51,64,.07);border-radius:0 8px 8px 0;color:#d3dce2}
+  /* ---- about / hiring ---- */
+  .about{max-width:1500px;margin:0 auto;padding:0 22px 22px}
+  .about .box{background:linear-gradient(135deg,var(--card) 0%,#14202b 100%);border:1px solid var(--line);border-radius:12px;padding:20px 22px;display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:24px}
+  @media (max-width:900px){.about .box{grid-template-columns:1fr}}
+  .about h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:0 0 8px}
+  .about p{margin:0 0 9px;font-size:13.5px;color:#b5c2cb}
+  .about a{color:var(--red2);text-decoration:none;border-bottom:1px solid rgba(255,93,108,.35)}
+  .about a:hover{border-bottom-color:var(--red2)}
+  .about .hire{border-left:3px solid var(--red);padding-left:18px}
+  .about .hire h2{color:var(--red2)}
+  .about .hire p.big{font-size:15px;color:var(--ink)}
+  .about a.cta{display:inline-block;margin-top:4px;background:var(--red);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-size:13.5px}
+  .about a.cta:hover{background:var(--red2)}
 </style>
 </head>
 <body>
@@ -105,15 +138,49 @@
     </div>
     <div class="sec"><h2>Scenarios</h2><div class="cards" id="scenarios"></div></div>
     <div class="sec"><h2>Places</h2><div class="chips" id="chips"></div></div>
+    <div class="sec">
+      <h2>Meet the climbers</h2>
+      <p class="lede">Four climbers, one question: <i>which way is up, and how far should I step?</i> None of them can see the map. They only feel the slope under their feet, and they differ in what they do with that feeling.</p>
+      <div class="opts">
+      <article class="opt" style="--c:#ff5d6c">
+        <div class="top"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="currentColor"/></svg><h3>SGD</h3><span class="tag">the plain hiker</span></div>
+        <p class="story">Feels the slope under its boots and steps uphill, a long stride when it is steep and a shuffle when it is nearly flat. No memory, no tricks.</p>
+        <code>step = &eta; &times; slope</code>
+        <dl><dt>Good at</dt><dd>Being simple and predictable. Few knobs to tune, and it settles calmly on whatever hilltop it reaches.</dd><dt>Trips up on</dt><dd>Flat ground (it crawls) and small bumps (it stops on the first one it finds).</dd></dl>
+        <button class="tryit" onclick="tryScenario('plains')">Try: Lost on the plains &rarr;</button>
+      </article>
+      <article class="opt" style="--c:#f5c542">
+        <div class="top"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" fill="currentColor"/></svg><h3>Momentum</h3><span class="tag">the rolling ball</span></div>
+        <p class="story">Keeps a running velocity, like a ball rolling uphill. Long steady slopes build up speed, and small bumps get rolled straight over.</p>
+        <code>velocity = &beta; &times; velocity + slope</code>
+        <dl><dt>Good at</dt><dd>Long slopes and shrugging off tiny bumps and noise that would trap SGD.</dd><dt>Trips up on</dt><dd>Overshooting. With a high step size and high momentum it can sail past the top and loop around it.</dd></dl>
+        <button class="tryit" onclick="tryScenario('wild')">Try: Momentum goes wild &rarr;</button>
+      </article>
+      <article class="opt" style="--c:#d48bff">
+        <div class="top"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 14H1z" fill="currentColor"/></svg><h3>AdamW</h3><span class="tag">the careful accountant</span></div>
+        <p class="story">Tracks how steep each direction has been lately and scales every axis on its own, so east-west and north-south both move at a sensible pace.</p>
+        <code>step = &eta; &times; slope / typical slope, per axis</code>
+        <dl><dt>Good at</dt><dd>Uneven terrain. It does not care whether a slope is gentle or brutal, which is why it is a workhorse for training LLMs.</dd><dt>Trips up on</dt><dd>Rotation. Its axes are the map&rsquo;s axes, so turning the map changes its path. Weight decay is off here, so this is plain Adam.</dd></dl>
+        <button class="tryit" onclick="tryScenario('adam')">Try: AdamW hates rotation &rarr;</button>
+      </article>
+      <article class="opt" style="--c:#3de0c0">
+        <div class="top"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .8 15.2 8 8 15.2.8 8z" fill="currentColor"/></svg><h3>Muon</h3><span class="tag">the metronome</span></div>
+        <p class="story">Takes only the direction of its momentum and throws away the size, so every stride is the same length. On real model weights it also evens out how hard each direction is pushed.</p>
+        <code>step = &eta; &times; momentum / |momentum|</code>
+        <dl><dt>Good at</dt><dd>Steady progress on flat ground, since a tiny slope still gets a full stride. It is a newer optimizer gaining ground in LLM training.</dd><dt>Trips up on</dt><dd>Settling. Fixed-length strides mean it keeps hopping around the summit unless the step size decays.</dd></dl>
+        <button class="tryit" onclick="tryScenario('muon')">Try: Muon never settles &rarr;</button>
+      </article>
+      </div>
+    </div>
     <details>
       <summary>How this works</summary>
-      <p><b>Setup.</b> The map is a grid of ground heights. Each climber sees only the slope under its feet and takes a step using one of four update rules: plain gradient descent (SGD), SGD with momentum, AdamW, and a Muon-style rule. The loss is minus the elevation, so going downhill in loss means going uphill on the ground.</p>
+      <p><b>Setup.</b> The map is a grid of ground heights. Each climber sees only the slope under its feet and takes a step using one of the four update rules above. The loss is minus the elevation, so going downhill in loss means going uphill on the ground.</p>
+      <div class="callout">In machine learning terms: the hill is the loss landscape, the climber is the model&rsquo;s parameters, and the step size is the learning rate. Getting stuck on a small bump is getting stuck in a local minimum.</div>
       <p><b>AdamW and rotation.</b> (Weight decay is set to zero here, so this is plain Adam under the AdamW name.) AdamW rescales each coordinate separately, so its path changes when you rotate the axes. SGD, Momentum and Muon do not care about rotation.</p>
       <p><b>Muon on a map.</b> Muon orthogonalises the update matrix. Here the parameters are a 2-vector, which is a 1&times;2 matrix, so the orthogonalised step is just the momentum direction at unit length. That makes it a normalised-gradient method, which is why it sits awkwardly on a 2D map.</p>
       <p><b>Terrain blur.</b> Blurring the map before climbing removes small bumps, so climbers see only the big hills. With &ldquo;sharpen over the run&rdquo; the blur fades out as they climb, so they first head for a big hill and then settle on the real top. This idea is called graduated optimization or scale-space annealing. Results are always judged against the real, unblurred terrain.</p>
       <p><b>Arrival.</b> A climber counts as arrived when it ends within about 5 m of the hilltop you would reach by walking steadily uphill from where it stopped. A &ldquo;flat spot&rdquo; is a bump under 30&nbsp;cm of prominence, mostly smoothing and data noise.</p>
       <p><b>Data.</b> Elevation is FABDEM v1.2 (a bare-earth version of Copernicus GLO-30 with buildings and forest removed by machine learning), on its 1&Prime; (~31&nbsp;m) grid and smoothed with a ~60&nbsp;m kernel. It is not survey data, so heights can be off by several metres and some small hills are flattened. Bukit Timah Hill reads 162&nbsp;m here against 163.6&nbsp;m surveyed, while Bukit Gombak reads about 55&nbsp;m against 133&nbsp;m. The tile ends at 104&deg;E, so Pulau Tekong and the far east of Changi are missing. Johor is masked out. Hilltop names are placed by hand and matched to the nearest real peak, so treat them as approximate.</p>
-      <p>Inspired by Kaley Brauer&rsquo;s <i>SF Hill Climbers</i>.</p>
     </details>
   </section>
 
@@ -159,6 +226,24 @@
     </section>
   </aside>
 </main>
+<section class="about">
+  <div class="box">
+    <div>
+      <h2>Inspired by</h2>
+      <p>This is a Singapore remix of <i>SF Hill Climbers</i> by Kaley Brauer, who had the lovely idea of letting optimizers loose on a real city. Go and follow her work: <a href="https://x.com/kaleybrauer/" target="_blank" rel="noopener noreferrer">@kaleybrauer on X</a>.</p>
+    </div>
+    <div>
+      <h2>Made by</h2>
+      <p>Hi, I&rsquo;m Arka. I post small experiments like this one over at <a href="https://x.com/fewshotray" target="_blank" rel="noopener noreferrer">@fewshotray on X</a>.</p>
+    </div>
+    <div class="hire">
+      <h2>We&rsquo;re hiring at HTX</h2>
+      <p class="big">We work on making models better for Singapore, and we get to decide fun things like which optimizer works best on our brand new GB300s.</p>
+      <p>If you would like a job where the hills are real and the loss curves are too, get in touch.</p>
+      <a class="cta" href="https://www.linkedin.com/in/arka-ray" target="_blank" rel="noopener noreferrer">Reach me on LinkedIn &rarr;</a>
+    </div>
+  </div>
+</section>
 <footer>Elevation: FABDEM v1.2 (University of Bristol, non-commercial government licence). Hilltop names are approximate.</footer>
 
 <script>
@@ -685,6 +770,10 @@ readParams();
 /* places and scenarios */
 for(const [nm,la,lo] of PLACES){ const b=document.createElement('button'); b.className='chip'; b.textContent=nm; b.onclick=()=>{ state.scenario=null; markScenario(); goLL(la,lo,nm); }; $('chips').appendChild(b); }
 function setSlider(id,v){ const el=$(id); if(el.type==='checkbox') el.checked=!!v; else el.value=v; }
+function tryScenario(id){
+  const b=document.querySelector('.sc[data-id="'+id+'"]');
+  if(b){ b.click(); stage.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
 function markScenario(){
   document.querySelectorAll('.sc').forEach(b=>b.classList.toggle('on',b.dataset.id===state.scenario));
   if(!state.scenario) $('cap').style.display='none';
