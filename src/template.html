@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singapore Hill Climbers</title>
+<style>
+  :root{
+    --bg:#0a0e13; --card:#111922; --card2:#16212c; --line:#24323f; --ink:#e9eef2; --mute:#8b9ba7;
+    --red:#ef3340; --red2:#ff5d6c; --gold:#f5c542; --orchid:#d48bff; --jade:#3de0c0;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{padding:20px 22px 8px;max-width:1500px;margin:0 auto;display:flex;gap:14px;align-items:flex-start}
+  .mark{width:6px;align-self:stretch;background:linear-gradient(var(--red) 0 50%,#fff 50% 100%);border-radius:3px;min-height:48px}
+  h1{margin:0;font-size:27px;letter-spacing:-.01em}
+  h1 span{color:var(--red2)}
+  header p{margin:5px 0 0;color:var(--mute);max-width:880px}
+  main{max-width:1500px;margin:0 auto;padding:10px 22px 36px;display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px;align-items:start}
+  @media (max-width:1000px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px}
+  #stage{position:relative;overflow:hidden;height:min(72vh,740px);min-height:380px;touch-action:none;background:#0d2234;cursor:crosshair;border-radius:12px 12px 0 0}
+  #map{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #stage.chase #map{animation:wobble .28s infinite}
+  @keyframes wobble{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(3px,-2px) rotate(.35deg)}50%{transform:translate(-3px,2px) rotate(-.35deg)}75%{transform:translate(2px,3px) rotate(.25deg)}100%{transform:translate(0,0) rotate(0)}}
+  @media (prefers-reduced-motion:reduce){#stage.chase #map{animation:none}}
+  #hover{position:absolute;left:10px;bottom:10px;background:rgba(10,14,19,.8);padding:4px 9px;border-radius:7px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;pointer-events:none}
+  #zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+  #zoom button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:rgba(17,25,34,.92);font-size:18px;cursor:pointer;color:var(--ink)}
+  #toast{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);background:#e9eef2;color:#0a0e13;padding:7px 13px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:80%;text-align:center}
+  #toast.on{opacity:.96}
+  #loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);color:var(--mute)}
+  #cap{position:absolute;left:10px;top:10px;max-width:min(380px,calc(100% - 70px));background:rgba(10,14,19,.86);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:9px;padding:9px 30px 10px 12px;font-size:13px;display:none;backdrop-filter:blur(3px)}
+  #cap b{display:block;font-size:14px;margin-bottom:2px}
+  #cap .watch{color:var(--gold);margin-top:4px}
+  #cap button{position:absolute;right:4px;top:2px;background:none;border:0;color:var(--mute);font-size:18px;cursor:pointer}
+  #badge{position:absolute;right:56px;top:12px;background:var(--red);color:#fff;font-weight:700;padding:5px 11px;border-radius:999px;font-size:13px;display:none;box-shadow:0 0 0 3px rgba(239,51,64,.3)}
+  #stage.chase #badge{display:block}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+  button.btn{font:inherit;border:1px solid var(--line);background:var(--card2);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+  button.btn:hover{border-color:#3b5163}
+  button.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  .sec{padding:12px 14px;border-top:1px solid var(--line)}
+  .sec h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:0 0 9px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+  .sc{text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;color:var(--ink);font:inherit}
+  .sc:hover{border-color:var(--red2)} .sc.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+  .sc b{display:block;font-size:13.5px} .sc span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12.5px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card2);cursor:pointer;color:var(--ink)}
+  .chip:hover{border-color:var(--gold)}
+  .panel{padding:14px 16px}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:0 0 10px}
+  .row{display:grid;grid-template-columns:118px 1fr 62px;gap:8px;align-items:center;margin:7px 0;font-size:14px}
+  .row output{font-variant-numeric:tabular-nums;text-align:right;color:var(--mute);font-size:12.5px}
+  input[type=range]{width:100%;accent-color:var(--red)}
+  input[type=checkbox]{accent-color:var(--red)}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);text-align:left;font-weight:600;padding:0 4px 6px}
+  td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .dot{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+  #summary{font-size:14px;margin:0 0 10px}
+  .note{font-size:12.5px;color:var(--mute);margin:8px 0 0}
+  details{padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;color:#b5c2cb}
+  details summary{cursor:pointer;font-weight:600;color:var(--ink)}
+  details p{margin:8px 0}
+  canvas#chart{width:100%;height:92px;display:block}
+  label.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0}
+  .sub{border-top:1px dashed var(--line);margin-top:10px;padding-top:6px}
+  .sub h3{margin:8px 0 2px;font-size:13px;color:var(--gold);font-weight:600}
+  .fname{font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  footer{max-width:1500px;margin:0 auto;padding:0 22px 30px;color:var(--mute);font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="mark"></div>
+  <div>
+    <h1>Singapore <span>Hill Climbers</span></h1>
+    <p>Four optimizers, one island. Loss is negative elevation, so every hilltop is a local minimum and Bukit Timah Hill is the global one. Tap the map to drop a start, or try a scenario below.</p>
+  </div>
+</header>
+
+<main>
+  <section class="card" style="overflow:hidden">
+    <div id="stage">
+      <canvas id="map"></canvas>
+      <div id="hover">hover the map</div>
+      <div id="zoom"><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">&minus;</button><button id="zfit" title="Fit" style="font-size:13px">fit</button></div>
+      <div id="cap"><button id="capx" title="Dismiss">&times;</button><b id="captitle"></b><div id="capbody"></div><div class="watch" id="capwatch"></div></div>
+      <div id="badge">Benny Hill mode</div>
+      <div id="toast"></div>
+      <div id="loading">Loading terrain&hellip;</div>
+    </div>
+    <div class="bar">
+      <button class="btn primary" id="play">&#9654; Play</button>
+      <button class="btn" id="replay">&#8634; Replay</button>
+      <button class="btn" id="skip">Skip to end</button>
+      <button class="btn" id="rand">Random start</button>
+      <span style="flex:1"></span>
+      <label style="font-size:13px;color:var(--mute)">slow <input type="range" id="speed" min="0" max="100" value="40" style="width:120px;vertical-align:middle"> fast</label>
+    </div>
+    <div class="sec"><h2>Scenarios</h2><div class="cards" id="scenarios"></div></div>
+    <div class="sec"><h2>Places</h2><div class="chips" id="chips"></div></div>
+    <details>
+      <summary>How this works and what to trust</summary>
+      <p><b>Setup.</b> The map is a grid of ground heights. Each climber sees only the slope under its feet and takes a step using one of four update rules: plain gradient descent (SGD), SGD with momentum, AdamW, and a Muon-style rule. The loss is minus the elevation, so going downhill in loss means going uphill on the ground.</p>
+      <p><b>AdamW and rotation.</b> (Weight decay is set to zero here, so this is plain Adam under the AdamW name.) AdamW rescales each coordinate separately, so its path changes when you rotate the axes. SGD, Momentum and Muon do not care about rotation.</p>
+      <p><b>Muon on a map.</b> Muon orthogonalises the update matrix. Here the parameters are a 2-vector, which is a 1&times;2 matrix, so the orthogonalised step is just the momentum direction at unit length. That makes it a normalised-gradient method, which is why it sits awkwardly on a 2D map.</p>
+      <p><b>Terrain blur.</b> Blurring the map before climbing removes small bumps, so climbers see only the big hills. With &ldquo;sharpen over the run&rdquo; the blur fades out as they climb, so they first head for a big hill and then settle on the real top. This idea is called graduated optimization or scale-space annealing. Results are always judged against the real, unblurred terrain.</p>
+      <p><b>Arrival.</b> A climber counts as arrived when it ends within about 5 m of the hilltop you would reach by walking steadily uphill from where it stopped. A &ldquo;flat spot&rdquo; is a bump under 30&nbsp;cm of prominence, mostly smoothing and data noise.</p>
+      <p><b>Data.</b> Elevation is FABDEM v1.2 (a bare-earth version of Copernicus GLO-30 with buildings and forest removed by machine learning), on its 1&Prime; (~31&nbsp;m) grid and smoothed with a ~60&nbsp;m kernel. It is not survey data, so heights can be off by several metres and some small hills are flattened. Bukit Timah Hill reads 162&nbsp;m here against 163.6&nbsp;m surveyed, while Bukit Gombak reads about 55&nbsp;m against 133&nbsp;m. The tile ends at 104&deg;E, so Pulau Tekong and the far east of Changi are missing. Johor is masked out. Hilltop names are placed by hand and matched to the nearest real peak, so treat them as approximate.</p>
+      <p>Inspired by Kaley Brauer&rsquo;s <i>SF Hill Climbers</i>.</p>
+    </details>
+  </section>
+
+  <aside class="stack">
+    <section class="card panel">
+      <h2>Results</h2>
+      <p id="startinfo" class="note" style="margin:0 0 6px">No start chosen yet.</p>
+      <p id="summary">Pick a start to see where each optimizer ends up.</p>
+      <table>
+        <thead><tr><th></th><th>Status</th><th>Step</th><th>Height</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="note" style="margin-top:10px">Height over steps</p>
+      <canvas id="chart"></canvas>
+    </section>
+
+    <section class="card panel">
+      <h2>Settings</h2>
+      <div class="row"><span>Learning rate &eta;</span><input type="range" id="lr" min="0" max="100" value="52"><output id="lrv"></output></div>
+      <div class="row"><span>Momentum &beta;</span><input type="range" id="beta" min="0" max="0.99" step="0.01" value="0.9"><output id="betav"></output></div>
+      <div class="row"><span>Gradient noise &sigma;</span><input type="range" id="sigma" min="0" max="0.05" step="0.001" value="0"><output id="sigmav"></output></div>
+      <div class="row"><span>Rotate axes</span><input type="range" id="rot" min="0" max="90" step="1" value="0"><output id="rotv"></output></div>
+      <div class="row"><span>Steps</span><input type="range" id="steps" min="500" max="10000" step="250" value="4000"><output id="stepsv"></output></div>
+      <label class="chk"><input type="checkbox" id="cos"> Cosine learning-rate decay</label>
+      <p class="note">&eta; is metres of travel per unit of slope for SGD and Momentum. AdamW and Muon move about &eta;&times;0.02&nbsp;m per step.</p>
+
+      <div class="sub">
+        <h3>Terrain blur</h3>
+        <div class="row"><span>Blur</span><input type="range" id="blur" min="0" max="4" step="0.1" value="0"><output id="blurv"></output></div>
+        <label class="chk"><input type="checkbox" id="anneal" checked> Sharpen over the run</label>
+      </div>
+
+      <div class="sub">
+        <h3>Benny Hill mode</h3>
+        <label class="chk"><input type="checkbox" id="benny"> Chase effect when a climber goes wild</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn" id="audiobtn">Replace audio&hellip;</button>
+          <input type="file" id="audiofile" accept="audio/*" hidden>
+          <span class="fname" id="audioname">no audio loaded</span>
+        </div>
+        <p class="note">Off by default. When on, playback speeds up and the chase clip plays while any climber is racing around. You can swap in another clip; it stays in your browser.</p>
+      </div>
+    </section>
+  </aside>
+</main>
+<footer>Elevation: FABDEM v1.2 (University of Bristol, non-commercial government licence). Hilltop names are approximate.</footer>
+
+<script>
+"use strict";
+const TERRAIN = __TERRAIN__;
+const CELL = 30.8;                 // metres per grid cell (1 arc-second)
+const ADAM_SCALE = 0.02;
+const TOL = 5;                     // arrival radius in metres
+const BLUR_SIG = [0,3,6,12,24];    // extra gaussian sigma in cells for each blur level
+const OPTS = [
+  {id:'sgd',  name:'SGD',      color:'#ff5d6c', shape:'circle',  tip:'Steps straight uphill, in proportion to the slope.'},
+  {id:'mom',  name:'Momentum', color:'#f5c542', shape:'square',  tip:'Remembers its velocity, so it builds speed on long slopes and can overshoot.'},
+  {id:'adam', name:'AdamW',     color:'#d48bff', shape:'triangle',tip:'Scales each axis separately, so rotating the map changes its path. Weight decay is 0 here, so it behaves exactly like Adam.'},
+  {id:'muon', name:'Muon',     color:'#3de0c0', shape:'diamond', tip:'Takes fixed-length steps in the momentum direction.'}
+];
+const PLACES = [
+  ['Marina Bay',1.2834,103.8607],['Orchard',1.3048,103.8318],['Jurong East',1.3331,103.7436],
+  ['Tampines',1.3526,103.9453],['Woodlands',1.4370,103.7865],['NUS Kent Ridge',1.2966,103.7764],
+  ['Changi Airport',1.3554,103.9863],['Pulau Ubin',1.4045,103.9610],['Sentosa',1.2490,103.8430],['Punggol',1.4043,103.9021]
+];
+const SCENARIOS = __SCENARIOS__;
+const AUDIO = __AUDIO__;
+const AUDIO_URL = 'assets/chase.mp3';   // used when no clip is embedded: drop your file at this path next to index.html
+
+let META, W, H, T = null;
+const state = {
+  start:null, t:0, running:false, tmax:4000, climbers:[], show:[true,true,true,true],
+  p:{lr:200, beta:0.9, sigma:0, rot:0, cos:false, blur:0, anneal:true}, scenario:null
+};
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- data loading ---------- */
+function b64bytes(s){ const bin=atob(s), n=bin.length, u=new Uint8Array(n); for(let i=0;i<n;i++) u[i]=bin.charCodeAt(i); return u; }
+async function gunzip(bytes){
+  const ds = new DecompressionStream('gzip');
+  return await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer();
+}
+function gradients(h){
+  const n=W*H, gx=new Float32Array(n), gy=new Float32Array(n);
+  for(let y=0;y<H;y++){
+    const y0=Math.max(0,y-1), y1=Math.min(H-1,y+1);
+    for(let x=0;x<W;x++){
+      const x0=Math.max(0,x-1), x1=Math.min(W-1,x+1), i=y*W+x;
+      gx[i]=(h[y*W+x1]-h[y*W+x0])/((x1-x0)*CELL);
+      gy[i]=(h[y1*W+x]-h[y0*W+x])/((y1-y0)*CELL);
+    }
+  }
+  return [gx,gy];
+}
+async function loadTerrain(){
+  const d = TERRAIN;
+  const q = new Uint16Array(await gunzip(b64bytes(d.dem)));
+  const pk = new Uint16Array(await gunzip(b64bytes(d.peaks)));
+  META=d.meta; W=META.W; H=META.H;
+  const t = {q, peaks:pk}, n=W*H;
+  t.h=new Float32Array(n); for(let i=0;i<n;i++) t.h[i]=q[i]/META.scale;
+  [t.gx,t.gy]=gradients(t.h);
+  t.peakAt=new Map(); t.nameAt=new Map();
+  for(let k=0;k<pk.length/4;k++) t.peakAt.set(pk[4*k+1]*W+pk[4*k], k);
+  for(const nm of META.named){ const k=nm.peak; t.nameAt.set(pk[4*k+1]*W+pk[4*k], nm.name); }
+  t.globalPeak=pk[1]*W+pk[0];                      // peaks are sorted tallest first
+  t.lv=[{gx:t.gx,gy:t.gy,h:t.h,canvas:null}];
+  t.lv[0].canvas=renderHillshade(t,t.h,t.gx,t.gy);
+  t.lvReady=false;
+  return t;
+}
+
+/* ---------- blurred levels (scale-space) ---------- */
+function boxPass(src,dst,r,horiz){
+  const w=2*r+1;
+  if(horiz){
+    for(let y=0;y<H;y++){ const o=y*W; let acc=0; for(let k=-r;k<=r;k++) acc+=src[o+clamp(k,0,W-1)];
+      for(let x=0;x<W;x++){ dst[o+x]=acc/w; acc+=src[o+Math.min(x+r+1,W-1)]-src[o+Math.max(x-r,0)]; } }
+  }else{
+    for(let x=0;x<W;x++){ let acc=0; for(let k=-r;k<=r;k++) acc+=src[clamp(k,0,H-1)*W+x];
+      for(let y=0;y<H;y++){ dst[y*W+x]=acc/w; acc+=src[Math.min(y+r+1,H-1)*W+x]-src[Math.max(y-r,0)*W+x]; } }
+  }
+}
+function gaussBlur(h,sigma){
+  const n=3, wi=Math.sqrt(12*sigma*sigma/n+1); let wl=Math.floor(wi); if(wl%2===0) wl--; const wu=wl+2;
+  const m=Math.round((12*sigma*sigma-n*wl*wl-4*n*wl-3*n)/(-4*wl-4));
+  let a=Float32Array.from(h), b=new Float32Array(h.length);
+  for(let i=0;i<n;i++){ const r=((i<m?wl:wu)-1)/2; boxPass(a,b,r,true); boxPass(b,a,r,false); }
+  return a;
+}
+function ensureLevels(){
+  if(T.lvReady) return;
+  for(let i=1;i<BLUR_SIG.length;i++){
+    const h=gaussBlur(T.h,BLUR_SIG[i]); const [gx,gy]=gradients(h);
+    T.lv[i]={h,gx,gy,canvas:renderHillshade(T,h,gx,gy)};
+  }
+  T.lvReady=true;
+}
+
+/* ---------- hillshade (dark Singapore palette) ---------- */
+const RAMP = [[0.5,[20,52,48]],[12,[28,70,60]],[40,[44,92,66]],[80,[96,112,68]],[125,[170,132,80]],[180,[240,216,172]]];
+function ramp(m){
+  if(m<=RAMP[0][0]) return RAMP[0][1];
+  for(let i=1;i<RAMP.length;i++){
+    if(m<=RAMP[i][0]){
+      const [a,ca]=RAMP[i-1],[b,cb]=RAMP[i],f=(m-a)/(b-a);
+      return [ca[0]+(cb[0]-ca[0])*f, ca[1]+(cb[1]-ca[1])*f, ca[2]+(cb[2]-ca[2])*f];
+    }
+  }
+  return RAMP[RAMP.length-1][1];
+}
+function renderHillshade(t,h,gx,gy){
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const ctx=c.getContext('2d'); const img=ctx.createImageData(W,H); const d=img.data;
+  const blurred = h!==t.h;
+  const Z=blurred?5.0:3.4, az=315*Math.PI/180, alt=40*Math.PI/180;
+  const lx=Math.sin(az)*Math.cos(alt), ly=Math.cos(az)*Math.cos(alt), lz=Math.sin(alt);
+  for(let i=0;i<W*H;i++){
+    let r,g,b;
+    if(t.q[i]===0){ r=13;g=34;b=52; }
+    else{
+      const nx=gx[i]*Z, ny=gy[i]*Z, nz=1, nl=Math.hypot(nx,ny,nz);
+      const s=Math.max(0,(-nx*lx+ny*ly+nz*lz)/nl);
+      const f=0.22+1.15*s;
+      const col=ramp(h[i]);
+      r=col[0]*f; g=col[1]*f; b=col[2]*f;
+    }
+    const o=4*i; d[o]=r; d[o+1]=g; d[o+2]=b; d[o+3]=255;
+  }
+  ctx.putImageData(img,0,0); return c;
+}
+
+/* ---------- sampling ---------- */
+function sampleGrad(X,Y,out,lv){
+  const fx=clamp(X/CELL,0,W-1.001), fy=clamp(Y/CELL,0,H-1.001);
+  const x0=fx|0, y0=fy|0, tx=fx-x0, ty=fy-y0, i=y0*W+x0;
+  const a=(1-tx)*(1-ty), b=tx*(1-ty), c=(1-tx)*ty, d=tx*ty;
+  const li=lv>0?Math.min(BLUR_SIG.length-2,lv|0):0, lf=lv>0?lv-li:0;
+  let L=T.lv[li];
+  let gx=L.gx[i]*a+L.gx[i+1]*b+L.gx[i+W]*c+L.gx[i+W+1]*d;
+  let gy=L.gy[i]*a+L.gy[i+1]*b+L.gy[i+W]*c+L.gy[i+W+1]*d;
+  if(lf>1e-6){
+    L=T.lv[li+1];
+    const gx2=L.gx[i]*a+L.gx[i+1]*b+L.gx[i+W]*c+L.gx[i+W+1]*d;
+    const gy2=L.gy[i]*a+L.gy[i+1]*b+L.gy[i+W]*c+L.gy[i+W+1]*d;
+    gx+=(gx2-gx)*lf; gy+=(gy2-gy)*lf;
+  }
+  out[0]=gx; out[1]=gy;
+}
+function heightAtM(X,Y){
+  const fx=clamp(X/CELL,0,W-1.001), fy=clamp(Y/CELL,0,H-1.001);
+  const x0=fx|0, y0=fy|0, tx=fx-x0, ty=fy-y0, i=y0*W+x0, h=T.h;
+  return h[i]*(1-tx)*(1-ty)+h[i+1]*tx*(1-ty)+h[i+W]*(1-tx)*ty+h[i+W+1]*tx*ty;
+}
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function gaussian(rng){ let u=0; while(u===0) u=rng(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*rng()); }
+function blurAt(p,t,steps){ return p.blur<=0 ? 0 : (p.anneal ? p.blur*(1-clamp(t/(0.8*steps),0,1)) : p.blur); }
+
+/* ---------- optimizers ---------- */
+function simulate(kind, sx, sy, p, steps, seed){
+  const pos=new Float32Array((steps+1)*2), el=new Float32Array(steps+1);
+  let X=sx*CELL, Y=sy*CELL;
+  pos[0]=X; pos[1]=Y; el[0]=heightAtM(X,Y);
+  const rng=mulberry32(seed), g=[0,0];
+  const rad=p.rot*Math.PI/180, cr=Math.cos(rad), sr=Math.sin(rad);
+  let vx=0,vy=0, m1=0,m2=0,s1=0,s2=0;
+  const maxX=(W-1)*CELL, maxY=(H-1)*CELL;
+  for(let t=1;t<=steps;t++){
+    const decay = p.cos ? 0.5*(1+Math.cos(Math.PI*(t-1)/steps)) : 1;
+    sampleGrad(X,Y,g,blurAt(p,t-1,steps));
+    let Gx=-g[0], Gy=-g[1];                       // gradient of the loss L = -h
+    if(p.sigma>0){ Gx+=p.sigma*gaussian(rng); Gy+=p.sigma*gaussian(rng); }
+    if(kind==='sgd'){
+      const lr=p.lr*decay; X-=lr*Gx; Y-=lr*Gy;
+    }else if(kind==='mom'){
+      vx=p.beta*vx+Gx; vy=p.beta*vy+Gy; const lr=p.lr*decay; X-=lr*vx; Y-=lr*vy;
+    }else if(kind==='adam'){
+      const ux=cr*Gx+sr*Gy, uy=-sr*Gx+cr*Gy;
+      m1=0.9*m1+0.1*ux; m2=0.9*m2+0.1*uy; s1=0.999*s1+0.001*ux*ux; s2=0.999*s2+0.001*uy*uy;
+      const b1=1-Math.pow(0.9,t), b2=1-Math.pow(0.999,t), lr=p.lr*ADAM_SCALE*decay;
+      const dux=lr*(m1/b1)/(Math.sqrt(s1/b2)+1e-8), duy=lr*(m2/b1)/(Math.sqrt(s2/b2)+1e-8);
+      X-=cr*dux-sr*duy; Y-=sr*dux+cr*duy;
+    }else{                                         // muon: momentum, then orthogonalise (1x2 matrix -> unit vector)
+      vx=p.beta*vx+Gx; vy=p.beta*vy+Gy;
+      const nrm=Math.hypot(vx,vy)+1e-12, lr=p.lr*ADAM_SCALE*decay;
+      X-=lr*vx/nrm; Y-=lr*vy/nrm;
+    }
+    X=clamp(X,0,maxX); Y=clamp(Y,0,maxY);
+    pos[2*t]=X; pos[2*t+1]=Y; el[t]=heightAtM(X,Y);
+  }
+  // "going wild": racing around without getting anywhere, judged over a 30-step window
+  const wild=new Uint8Array(steps+1), cum=new Float32Array(steps+1), WIN=30;
+  for(let t=1;t<=steps;t++) cum[t]=cum[t-1]+Math.hypot(pos[2*t]-pos[2*t-2],pos[2*t+1]-pos[2*t-1]);
+  for(let t=WIN;t<=steps;t++){
+    const path=cum[t]-cum[t-WIN], net=Math.hypot(pos[2*t]-pos[2*(t-WIN)],pos[2*t+1]-pos[2*(t-WIN)+1]);
+    if(path<WIN*20 || path<=3*net) continue;
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    for(let k=t-WIN;k<=t;k++){ const px=pos[2*k],py=pos[2*k+1]; if(px<x0)x0=px; if(px>x1)x1=px; if(py<y0)y0=py; if(py>y1)y1=py; }
+    if(Math.max(x1-x0,y1-y0)>150) wild[t]=1;         // racing around over 150 m or more, not just jittering on a summit
+  }
+  const hold=new Uint8Array(steps+1); let last=-9999;
+  for(let t=0;t<=steps;t++){ if(wild[t]) last=t; hold[t]=(t-last<=90)?1:0; }
+  return {pos, el, wild:hold};
+}
+function walkUp(idx){
+  const q=T.q;
+  for(let guard=0; guard<20000; guard++){
+    const x=idx%W, y=(idx/W)|0; let best=idx, bq=q[idx];
+    for(let dy=-1;dy<=1;dy++){ const yy=y+dy; if(yy<0||yy>=H) continue;
+      for(let dx=-1;dx<=1;dx++){ const xx=x+dx; if(xx<0||xx>=W||(!dx&&!dy)) continue;
+        const j=yy*W+xx, qj=q[j];
+        if(qj>bq || (qj===bq && j>best)){ best=j; bq=qj; } } }
+    if(best===idx) return idx; idx=best;
+  }
+  return idx;
+}
+function cellToLL(xc,yc){ return [META.lat_n-(yc+0.5)/3600, META.lon_w+(xc+0.5)/3600]; }
+function fmtLL(la,lo){ return la.toFixed(4)+'°N, '+lo.toFixed(4)+'°E'; }
+// walk uphill on the real (unblurred) slope field until it stops: the summit this spot drains to
+function ascend(X,Y){
+  const g=[0,0];
+  for(let i=0;i<8000;i++){
+    sampleGrad(X,Y,g,0);
+    let dx=400*g[0], dy=400*g[1]; const l=Math.hypot(dx,dy);
+    if(l<0.01) break;
+    if(l>2){ dx*=2/l; dy*=2/l; }
+    X=clamp(X+dx,0,(W-1)*CELL); Y=clamp(Y+dy,0,(H-1)*CELL);
+  }
+  return [X,Y];
+}
+function classify(c){
+  const n=state.tmax, X=c.pos[2*n], Y=c.pos[2*n+1];
+  const xc=clamp(Math.round(X/CELL),0,W-1), yc=clamp(Math.round(Y/CELL),0,H-1), idx=yc*W+xc;
+  const back=Math.max(0,n-100); const mv=Math.hypot(X-c.pos[2*back], Y-c.pos[2*back+1]);
+  let pl=0; for(let q=back+1;q<=n;q++) pl+=Math.hypot(c.pos[2*q]-c.pos[2*q-2], c.pos[2*q+1]-c.pos[2*q-1]);
+  if(T.q[idx]===0) return {kind:'water', label:'Ended in the sea', top:null};
+  const [SX,SY]=ascend(X,Y);
+  const sc=clamp(Math.round(SX/CELL),0,W-1), sr=clamp(Math.round(SY/CELL),0,H-1);
+  const pk=walkUp(sr*W+sc), px=pk%W, py=(pk/W)|0, dist=Math.hypot(X-SX, Y-SY);
+  const k=T.peakAt.get(pk); const prom=k===undefined?0:T.peaks[4*k+3]/100;
+  const name=T.nameAt.get(pk), topH=T.q[pk]/META.scale;
+  const where=name?name:(prom>=30?'Unnamed hill':prom>=3?'Small rise':prom>=0.3?'Minor bump':'Flat spot');
+  const top={idx:pk,px,py,sx:SX,sy:SY,h:topH,prom,name:where,global:(pk===T.globalPeak)};
+  if(dist<=TOL){
+    let s=n; while(s>0 && Math.hypot(c.pos[2*(s-1)]-SX, c.pos[2*(s-1)+1]-SY)<=TOL) s--;
+    return {kind:prom<0.3?'flat':'arrived', arrive:s, top, label:prom<0.3?'Stuck on a flat spot':'Reached '+where};
+  }
+  if(dist<=120 && pl>50 && pl>5*(mv+5)) return {kind:'hopping', top, dist, label:'Hopping around the top, '+Math.round(dist)+' m off'};
+  return {kind:mv>1?'climbing':'stalled', top, dist,
+    label:mv>1?'Still climbing, '+Math.round(dist)+' m short':'Stalled '+Math.round(dist)+' m short'};
+}
+function recompute(){
+  if(!state.start || !T) return;
+  if(state.p.blur>0) ensureLevels();
+  const {x,y}=state.start, n=state.tmax;
+  const seed=(Math.imul(x,73856093)^Math.imul(y,19349663))>>>0;
+  state.climbers=OPTS.map(o=>{ const r=simulate(o.id,x,y,state.p,n,seed); return {opt:o,pos:r.pos,el:r.el,wild:r.wild,result:null}; });
+  for(const c of state.climbers) c.result=classify(c);
+  state.t=Math.min(state.t,n);
+  updateResults(); dirty=true;
+}
+
+/* ---------- view ---------- */
+const cv=$('map'), ctx=cv.getContext('2d'), stage=$('stage');
+let view={k:1,ox:0,oy:0,fit:1}, dpr=1, dirty=true;
+function resize(){
+  dpr=window.devicePixelRatio||1; const r=stage.getBoundingClientRect();
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  const wasFit=Math.abs(view.k-view.fit)<1e-6;
+  view.fit=Math.min(r.width/(W||1440), r.height/(H||1171));
+  if(wasFit||view.k<view.fit*0.99) fitView();
+  dirty=true;
+}
+function fitView(){ const r=stage.getBoundingClientRect(); view.k=view.fit; view.ox=(r.width-W*view.k)/2; view.oy=(r.height-H*view.k)/2; dirty=true; }
+function focusStart(){
+  const r=stage.getBoundingClientRect(); view.k=Math.max(view.k,view.fit*4.5);
+  view.ox=r.width/2-(state.start.x+0.5)*view.k; view.oy=r.height/2-(state.start.y+0.5)*view.k; dirty=true;
+}
+const toScreen=(xc,yc)=>[(xc+0.5)*view.k+view.ox,(yc+0.5)*view.k+view.oy];
+const toCell=(sx,sy)=>[(sx-view.ox)/view.k-0.5,(sy-view.oy)/view.k-0.5];
+function zoomAt(sx,sy,f){
+  const nk=clamp(view.k*f,view.fit*0.8,16); f=nk/view.k;
+  view.ox=sx-(sx-view.ox)*f; view.oy=sy-(sy-view.oy)*f; view.k=nk; dirty=true;
+}
+function marker(ctx,shape,x,y,r){
+  ctx.beginPath();
+  if(shape==='circle') ctx.arc(x,y,r,0,Math.PI*2);
+  else if(shape==='square') ctx.rect(x-r,y-r,2*r,2*r);
+  else if(shape==='triangle'){ ctx.moveTo(x,y-r*1.15); ctx.lineTo(x+r*1.1,y+r*0.9); ctx.lineTo(x-r*1.1,y+r*0.9); ctx.closePath(); }
+  else { ctx.moveTo(x,y-r*1.2); ctx.lineTo(x+r*1.2,y); ctx.lineTo(x,y+r*1.2); ctx.lineTo(x-r*1.2,y); ctx.closePath(); }
+}
+function currentLevel(){
+  if(state.p.blur<=0 || !T.lvReady) return 0;
+  return blurAt(state.p, state.t, state.tmax);
+}
+function draw(){
+  if(!T) return;
+  const w=cv.width/dpr, h=cv.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#0d2234'; ctx.fillRect(0,0,w,h);
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const lv=currentLevel(), li=Math.min(BLUR_SIG.length-2,lv|0), lf=lv-li;
+  ctx.drawImage(T.lv[li].canvas,view.ox,view.oy,W*view.k,H*view.k);
+  if(lv>0.01 && lf>0.01){ ctx.globalAlpha=lf; ctx.drawImage(T.lv[li+1].canvas,view.ox,view.oy,W*view.k,H*view.k); ctx.globalAlpha=1; }
+
+  ctx.font='11.5px system-ui,sans-serif'; ctx.textBaseline='middle';
+  const showLabels=view.k>view.fit*1.7;
+  for(const [idx,name] of T.nameAt){
+    const px=idx%W, py=(idx/W)|0, [sx,sy]=toScreen(px,py);
+    if(sx<-40||sy<-20||sx>w+40||sy>h+20) continue;
+    ctx.fillStyle='rgba(233,238,242,.8)'; ctx.beginPath(); ctx.arc(sx,sy,2.5,0,6.3); ctx.fill();
+    if(showLabels||idx===T.globalPeak){
+      ctx.lineWidth=3; ctx.strokeStyle='rgba(8,12,17,.9)'; ctx.strokeText(name,sx+6,sy); ctx.fillStyle='#e9eef2'; ctx.fillText(name,sx+6,sy);
+    }
+  }
+  { const [sx,sy]=toScreen(T.globalPeak%W,(T.globalPeak/W)|0);
+    ctx.fillStyle='#f5c542'; ctx.strokeStyle='#0a0e13'; ctx.lineWidth=1.3; ctx.beginPath();
+    for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?4.5:10; ctx.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); }
+    ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  if(state.start){
+    const [sx,sy]=toScreen(state.start.x,state.start.y);
+    if(state.p.rot>0){
+      const a=state.p.rot*Math.PI/180, L=34; ctx.strokeStyle='rgba(233,238,242,.6)'; ctx.setLineDash([4,3]); ctx.lineWidth=1.3;
+      for(const [dx,dy] of [[Math.cos(a),Math.sin(a)],[-Math.sin(a),Math.cos(a)]]){ ctx.beginPath(); ctx.moveTo(sx-dx*L,sy-dy*L); ctx.lineTo(sx+dx*L,sy+dy*L); ctx.stroke(); }
+      ctx.setLineDash([]);
+    }
+    const t=state.t;
+    state.climbers.forEach((c,i)=>{
+      if(!state.show[i]) return;
+      const stride=Math.max(1,Math.ceil(t/1800));
+      ctx.lineJoin='round';
+      for(const [col,wd] of [['rgba(5,8,12,.55)',4.2],[c.opt.color,2.2]]){
+        ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.beginPath();
+        for(let s=0;s<=t;s+=stride){ const [px,py]=toScreen(c.pos[2*s]/CELL,c.pos[2*s+1]/CELL); s?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+        { const [px,py]=toScreen(c.pos[2*t]/CELL,c.pos[2*t+1]/CELL); ctx.lineTo(px,py); }
+        ctx.stroke();
+      }
+    });
+    ctx.fillStyle='#fff'; ctx.strokeStyle='#0a0e13'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(sx,sy,5.5,0,6.3); ctx.fill(); ctx.stroke();
+    state.climbers.forEach((c,i)=>{
+      if(!state.show[i]) return;
+      const [px,py]=toScreen(c.pos[2*t]/CELL,c.pos[2*t+1]/CELL);
+      marker(ctx,c.opt.shape,px,py,6.4); ctx.fillStyle=c.opt.color; ctx.fill(); ctx.strokeStyle='#0a0e13'; ctx.lineWidth=2; ctx.stroke();
+    });
+  }
+  const mpp=CELL/view.k; let bar=100*mpp; const pw=Math.pow(10,Math.floor(Math.log10(bar))); bar=Math.round(bar/pw)*pw;
+  const bw=bar/mpp; ctx.fillStyle='rgba(10,14,19,.8)'; ctx.fillRect(w-bw-26,h-30,bw+16,22);
+  ctx.strokeStyle='#e9eef2'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(w-bw-18,h-14); ctx.lineTo(w-bw-18,h-10); ctx.lineTo(w-18,h-10); ctx.lineTo(w-18,h-14); ctx.stroke();
+  ctx.fillStyle='#e9eef2'; ctx.font='11px system-ui,sans-serif'; ctx.textAlign='center'; ctx.fillText(bar>=1000?(bar/1000)+' km':bar+' m', w-18-bw/2, h-20); ctx.textAlign='left';
+}
+function chartDraw(){
+  const c=$('chart'), r=c.getBoundingClientRect(), d=window.devicePixelRatio||1;
+  c.width=Math.round(r.width*d); c.height=Math.round(r.height*d);
+  const g=c.getContext('2d'); g.setTransform(d,0,0,d,0,0);
+  const w=r.width,h=r.height; g.clearRect(0,0,w,h);
+  if(!state.climbers.length) return;
+  let mx=1; state.climbers.forEach((cl,i)=>{ if(state.show[i]) for(let s=0;s<=state.tmax;s+=Math.ceil(state.tmax/300)) mx=Math.max(mx,cl.el[s]); });
+  mx=Math.ceil(mx/10)*10;
+  g.strokeStyle='#24323f'; g.lineWidth=1; g.fillStyle='#8b9ba7'; g.font='10.5px system-ui,sans-serif';
+  for(const f of [0,0.5,1]){ const y=h-14-(h-22)*f; g.beginPath(); g.moveTo(26,y); g.lineTo(w,y); g.stroke(); g.fillText(Math.round(mx*f)+'',0,y+3); }
+  state.climbers.forEach((cl,i)=>{
+    if(!state.show[i]) return;
+    g.strokeStyle=cl.opt.color; g.lineWidth=1.8; g.beginPath();
+    const st=Math.ceil(state.tmax/400);
+    for(let s=0;s<=state.tmax;s+=st){ const x=26+(w-28)*s/state.tmax, y=h-14-(h-22)*cl.el[s]/mx; s?g.lineTo(x,y):g.moveTo(x,y); }
+    g.stroke();
+  });
+  const px=26+(w-28)*state.t/state.tmax; g.strokeStyle='#e9eef2'; g.lineWidth=1; g.beginPath(); g.moveTo(px,2); g.lineTo(px,h-14); g.stroke();
+}
+
+/* ---------- UI updates ---------- */
+function updateResults(){
+  const done=state.t>=state.tmax, rows=$('rows'); rows.innerHTML=''; let reached=0;
+  state.climbers.forEach((c,i)=>{
+    const r=c.result, tr=document.createElement('tr'); let status, step=state.t;
+    if(done){
+      status=r.label; if(r.kind==='arrived'||r.kind==='flat') step=r.arrive;
+      if(r.kind==='arrived' && r.top.global) reached++;
+      if(r.top && (r.kind==='arrived'||r.kind==='flat')) status+=' <span style="color:var(--mute)">('+r.top.h.toFixed(0)+' m)</span>';
+    }else status='<span style="color:var(--mute)">climbing&hellip;</span>';
+    const sh=document.createElement('span'); sh.className='dot'; sh.style.background=c.opt.color;
+    sh.style.borderRadius=c.opt.shape==='circle'?'50%':'1px';
+    if(c.opt.shape==='diamond') sh.style.transform='rotate(45deg) scale(.85)';
+    if(c.opt.shape==='triangle'){ sh.style.background='none'; sh.style.width='0'; sh.style.height='0'; sh.style.borderLeft='6px solid transparent'; sh.style.borderRight='6px solid transparent'; sh.style.borderBottom='11px solid '+c.opt.color; sh.style.marginRight='5px'; }
+    const td0=document.createElement('td'); td0.style.whiteSpace='nowrap'; td0.title=c.opt.tip;
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=state.show[i]; cb.style.margin='0 6px 0 0'; cb.title='show/hide';
+    cb.onchange=()=>{ state.show[i]=cb.checked; dirty=true; chartDraw(); };
+    td0.append(cb,sh,document.createTextNode(c.opt.name));
+    const td1=document.createElement('td'); td1.innerHTML=status;
+    const td2=document.createElement('td'); td2.className='n'; td2.textContent=step.toLocaleString();
+    const td3=document.createElement('td'); td3.className='n'; td3.textContent=c.el[state.t].toFixed(1)+' m';
+    tr.append(td0,td1,td2,td3); rows.appendChild(tr);
+  });
+  const gname=T.nameAt.get(T.globalPeak)||'the highest point';
+  $('summary').innerHTML=done
+    ? '<b>'+reached+' of 4</b> reached the global minimum, '+gname+' ('+T.h[T.globalPeak].toFixed(0)+' m in this dataset).'
+    : 'Step <b>'+state.t.toLocaleString()+'</b> of '+state.tmax.toLocaleString()+'.';
+  chartDraw();
+}
+function setStart(xc,yc){
+  xc=clamp(Math.round(xc),0,W-1); yc=clamp(Math.round(yc),0,H-1);
+  if(T.q[yc*W+xc]===0){ toast('That spot is water. Pick a point on land.'); return false; }
+  state.start={x:xc,y:yc}; state.t=0;
+  const [la,lo]=cellToLL(xc,yc);
+  $('startinfo').textContent='Start: '+fmtLL(la,lo)+', '+T.h[yc*W+xc].toFixed(1)+' m above sea level.';
+  recompute(); play(true); return true;
+}
+function snapLand(xc,yc,R=40){
+  xc=Math.round(xc); yc=Math.round(yc);
+  for(let r=0;r<=R;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+    if(Math.max(Math.abs(dx),Math.abs(dy))!==r) continue;
+    const x=xc+dx,y=yc+dy; if(x>=0&&x<W&&y>=0&&y<H&&T.q[y*W+x]>0) return [x,y];
+  }
+  return null;
+}
+function llToCell(la,lo){ return [(lo-META.lon_w)*3600-0.5,(META.lat_n-la)*3600-0.5]; }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast.id); toast.id=setTimeout(()=>t.classList.remove('on'),2800); }
+function goLL(la,lo,label){
+  const [xc,yc]=llToCell(la,lo), s=snapLand(xc,yc,40);
+  if(!s){ toast((label||'That place')+' is not on the map.'); return false; }
+  if(setStart(s[0],s[1])){ focusStart(); return true; } return false;
+}
+
+/* ---------- playback + Benny Hill mode ---------- */
+const benny={on:false, audio:null, url:null, active:false, calm:0, who:'', fade:null};
+function bennyUpdate(){
+  if(!benny.on || !state.running) return;
+  const t=Math.floor(state.t); let who=null;
+  state.climbers.forEach((c,i)=>{ if(!who && state.show[i] && c.wild[t]) who=c.opt.name; });
+  if(who){
+    benny.calm=0; $('badge').textContent=who+' is going wild!';
+    if(!benny.active){ benny.active=true; stage.classList.add('chase'); startAudio(); }
+  }else if(benny.active && ++benny.calm>75) bennyStop();
+}
+function bennyStop(){
+  benny.active=false; benny.calm=0; stage.classList.remove('chase');
+  const a=benny.audio; if(!a) return;
+  clearInterval(benny.fade); let v=a.volume;
+  benny.fade=setInterval(()=>{ v-=0.1; if(v<=0){ clearInterval(benny.fade); a.pause(); a.volume=1; } else a.volume=v; },40);
+}
+function startAudio(){
+  const a=benny.audio; if(!a) return;
+  clearInterval(benny.fade); a.volume=1;
+  if(a.paused){ const p=a.play(); if(p&&p.catch) p.catch(()=>toast('Your browser blocked the sound. Click the page once, then replay.')); }
+}
+function resetAudio(){ clearInterval(benny.fade); if(benny.audio){ benny.audio.pause(); benny.audio.currentTime=0; benny.audio.volume=1; } benny.active=false; benny.calm=0; stage.classList.remove('chase'); }
+let raf=null;
+function speedPerFrame(){ return 0.25*Math.pow(60,Number($('speed').value)/100); }   // 0.25 to 15 steps per frame
+function play(restart){
+  if(restart||state.t>=state.tmax){ state.t=0; state.acc=0; resetAudio(); }
+  state.running=true; $('play').innerHTML='&#10074;&#10074; Pause'; dirty=true;
+}
+function pause(){ state.running=false; $('play').innerHTML='&#9654; Play'; if(benny.active) bennyStop(); }
+function frame(){
+  if(state.running && state.start){
+    const mult=benny.active?2.5:1;
+    state.acc=(state.acc||0)+speedPerFrame()*mult; const whole=Math.floor(state.acc); state.acc-=whole;
+    if(whole>0) state.t=Math.min(state.tmax, state.t+whole);
+    bennyUpdate();
+    if(state.t>=state.tmax) pause();
+    updateResults(); dirty=true;
+  }
+  if(dirty){ dirty=false; draw(); }
+  raf=requestAnimationFrame(frame);
+}
+
+/* ---------- events ---------- */
+let ptrs=new Map(), downAt=null, pinch=null;
+stage.addEventListener('pointerdown',e=>{
+  if(e.target.closest('#zoom,#cap')) return;
+  stage.setPointerCapture(e.pointerId); const r=stage.getBoundingClientRect();
+  ptrs.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});
+  downAt={x:e.clientX,y:e.clientY,moved:false};
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y)}; downAt.moved=true; }
+});
+stage.addEventListener('pointermove',e=>{
+  const r=stage.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  if(T){ const [xc,yc]=toCell(x,y), ix=Math.round(xc), iy=Math.round(yc);
+    if(ix>=0&&iy>=0&&ix<W&&iy<H){ const [la,lo]=cellToLL(ix,iy); $('hover').textContent=fmtLL(la,lo)+'  ·  '+(T.q[iy*W+ix]?T.h[iy*W+ix].toFixed(1)+' m':'sea'); } }
+  if(!ptrs.has(e.pointerId)) return;
+  const prev=ptrs.get(e.pointerId); ptrs.set(e.pointerId,{x,y});
+  if(ptrs.size===2&&pinch){ const [a,b]=[...ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y); zoomAt((a.x+b.x)/2,(a.y+b.y)/2,d/pinch.d); pinch.d=d; return; }
+  if(downAt && Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)>5) downAt.moved=true;
+  if(downAt && downAt.moved){ view.ox+=x-prev.x; view.oy+=y-prev.y; dirty=true; }
+});
+stage.addEventListener('pointerup',e=>{
+  const r=stage.getBoundingClientRect(); ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null;
+  if(downAt && !downAt.moved && !downAt.ui && T){ const [xc,yc]=toCell(e.clientX-r.left,e.clientY-r.top); state.scenario=null; markScenario(); setStart(xc,yc); }
+  if(ptrs.size===0) downAt=null;
+});
+stage.addEventListener('pointercancel',e=>{ ptrs.delete(e.pointerId); downAt=null; pinch=null; });
+stage.addEventListener('wheel',e=>{ e.preventDefault(); const r=stage.getBoundingClientRect(); zoomAt(e.clientX-r.left,e.clientY-r.top,Math.exp(-e.deltaY*0.0016)); },{passive:false});
+$('zin').onclick=()=>{ const r=stage.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,1.6); };
+$('zout').onclick=()=>{ const r=stage.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,1/1.6); };
+$('zfit').onclick=fitView;
+window.addEventListener('resize',resize);
+window.addEventListener('keydown',e=>{ if(e.code==='Space' && !/INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)){ e.preventDefault(); $('play').click(); } });
+$('play').onclick=()=>{ if(!state.start){ toast('Pick a start point first.'); return; } state.running?pause():play(false); };
+$('replay').onclick=()=>{ if(state.start){ state.t=0; play(true); } };
+$('skip').onclick=()=>{ if(state.start){ state.t=state.tmax; pause(); updateResults(); dirty=true; } };
+$('rand').onclick=()=>{ state.scenario=null; markScenario(); for(let i=0;i<200;i++){ const x=Math.random()*W|0,y=Math.random()*H|0; if(T.q[y*W+x]>0){ if(setStart(x,y)) focusStart(); return; } } };
+
+const LR_SPAN=2.477;                                  // slider covers eta = 10 .. 3000
+function lrFromSlider(v){ return Math.pow(10,1+LR_SPAN*v/100); }
+function sliderFromLr(lr){ return (Math.log10(lr)-1)/LR_SPAN*100; }
+function blurLabel(b){
+  if(b<=0) return 'off';
+  const i=Math.min(BLUR_SIG.length-2,b|0), f=b-i, s=BLUR_SIG[i]+(BLUR_SIG[i+1]-BLUR_SIG[i])*f;
+  return '~'+Math.round(Math.sqrt(s*s+4)*CELL/10)*10+' m';
+}
+function readParams(){
+  const p=state.p;
+  p.lr=lrFromSlider(Number($('lr').value)); p.beta=Number($('beta').value); p.sigma=Number($('sigma').value);
+  p.rot=Number($('rot').value); p.cos=$('cos').checked; p.blur=Number($('blur').value); p.anneal=$('anneal').checked;
+  state.tmax=Number($('steps').value);
+  $('lrv').textContent=p.lr<100?p.lr.toFixed(0):Math.round(p.lr);
+  $('betav').textContent=p.beta.toFixed(2); $('sigmav').textContent=p.sigma.toFixed(3);
+  $('rotv').textContent=p.rot+'°'; $('stepsv').textContent=state.tmax.toLocaleString(); $('blurv').textContent=blurLabel(p.blur);
+}
+async function onParamChange(){
+  const oldMax=state.tmax; readParams(); if(state.tmax!==oldMax) state.t=Math.min(state.t,state.tmax);
+  if(state.p.blur>0 && T && !T.lvReady){ toast('Preparing blurred terrain…'); await new Promise(r=>setTimeout(r,40)); }
+  recompute(); dirty=true;
+}
+for(const id of ['lr','beta','sigma','rot','steps','cos','blur','anneal']) $(id).addEventListener('input',()=>{ state.scenario=null; markScenario(); onParamChange(); });
+readParams();
+
+/* places and scenarios */
+for(const [nm,la,lo] of PLACES){ const b=document.createElement('button'); b.className='chip'; b.textContent=nm; b.onclick=()=>{ state.scenario=null; markScenario(); goLL(la,lo,nm); }; $('chips').appendChild(b); }
+function setSlider(id,v){ const el=$(id); if(el.type==='checkbox') el.checked=!!v; else el.value=v; }
+function markScenario(){
+  document.querySelectorAll('.sc').forEach(b=>b.classList.toggle('on',b.dataset.id===state.scenario));
+  if(!state.scenario) $('cap').style.display='none';
+}
+async function applyScenario(s){
+  const d={lr:200,beta:0.9,sigma:0,rot:0,cos:false,steps:4000,blur:0,anneal:true,...s.params};
+  setSlider('lr',sliderFromLr(d.lr)); setSlider('beta',d.beta); setSlider('sigma',d.sigma); setSlider('rot',d.rot);
+  setSlider('cos',d.cos); setSlider('steps',d.steps); setSlider('blur',d.blur); setSlider('anneal',d.anneal);
+  readParams();
+  state.show=OPTS.map(o=>!s.show||s.show.includes(o.id));
+  if(state.p.blur>0 && !T.lvReady){ toast('Preparing blurred terrain…'); await new Promise(r=>setTimeout(r,40)); ensureLevels(); }
+  state.scenario=s.id; markScenario();
+  $('captitle').textContent=s.title; $('capbody').textContent=s.blurb; $('capwatch').textContent='Watch for: '+s.watch; $('cap').style.display='block';
+  const [xc,yc]=s.cell?s.cell:llToCell(s.start[0],s.start[1]);
+  if(setStart(Math.round(xc),Math.round(yc))){
+    focusStart();
+    if(s.focus){ const r=stage.getBoundingClientRect(); view.k=s.focus.k; view.ox=r.width/2-(s.focus.cell[0]+0.5)*view.k; view.oy=r.height/2-(s.focus.cell[1]+0.5)*view.k; dirty=true; }
+  }
+}
+for(const s of SCENARIOS){
+  const b=document.createElement('button'); b.className='sc'; b.dataset.id=s.id;
+  b.innerHTML='<b></b><span></span>'; b.firstChild.textContent=s.title; b.lastChild.textContent=s.short;
+  b.onclick=()=>applyScenario(s); $('scenarios').appendChild(b);
+}
+$('capx').onclick=e=>{ e.stopPropagation(); $('cap').style.display='none'; };
+
+/* Benny Hill controls */
+$('benny').addEventListener('change',()=>{
+  benny.on=$('benny').checked;
+  if(benny.on && benny.audio){ const a=benny.audio; a.muted=true; const p=a.play(); if(p&&p.then) p.then(()=>{ a.pause(); a.currentTime=0; a.muted=false; }).catch(()=>{ a.muted=false; }); }
+  if(!benny.on) resetAudio();
+});
+$('audiobtn').onclick=()=>$('audiofile').click();
+function attachAudio(url,label){
+  if(benny.audio){ benny.audio.pause(); }
+  benny.audio=new Audio(url); benny.audio.loop=true; benny.audio.preload='auto';
+  $('audioname').textContent=label;
+}
+$('audiofile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ if(benny.url && benny.url.startsWith('blob:')) URL.revokeObjectURL(benny.url); benny.url=URL.createObjectURL(f); }catch(err){ toast('Could not read that file.'); return; }
+  attachAudio(benny.url,f.name); toast('Loaded. It plays while a climber goes wild.');
+});
+
+(async function init(){
+  try{
+    T=await loadTerrain(); resize(); fitView();
+    if(AUDIO){ benny.url=URL.createObjectURL(new Blob([b64bytes(AUDIO.b64)],{type:AUDIO.mime})); attachAudio(benny.url,AUDIO.name+' (preloaded)'); }
+    else{                                              // no embedded clip: use assets/chase.mp3 next to this page, if it exists
+      const probe=new Audio(); probe.preload='metadata';
+      probe.addEventListener('loadedmetadata',()=>{ if(!benny.audio) attachAudio(AUDIO_URL,'chase.mp3 (from assets)'); },{once:true});
+      probe.src=AUDIO_URL;
+    }
+    $('loading').style.display='none';
+    window.__ready=true;
+    const first=SCENARIOS[0]; if(first) await applyScenario(first); else goLL(1.3476,103.7740,'Bukit Timah');
+  }catch(err){ $('loading').textContent='Could not load the terrain: '+err; console.error(err); window.__error=String(err); }
+  frame();
+})();
+window.__dbg={state, view, get T(){return T}, get META(){return META}, classify, walkUp, simulate, recompute, setStart, applyScenario, benny, SCENARIOS, ensureLevels};
+</script>
+</body>
+</html>

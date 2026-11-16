@@ -1,0 +1,125 @@
+[
+ {
+  "id": "wild",
+  "title": "Momentum goes wild",
+  "short": "High rate + high momentum: it flies past the summit",
+  "start": [
+   1.3476,
+   103.774
+  ],
+  "params": {
+   "lr": 500,
+   "beta": 0.98,
+   "sigma": 0.02
+  },
+  "blurb": "Momentum remembers old slopes. Add gradient noise and every random kick gets stored and carried along, so it overshoots, gets kicked again, and never settles. The others take the same noise but stay near their hills.",
+  "watch": "the gold square's trail scribbling over the map while the others sit near their summits. Tick Benny Hill mode in Settings for the full effect.",
+  "cell": [
+   661,
+   452
+  ]
+ },
+ {
+  "id": "adam",
+  "title": "AdamW hates rotation",
+  "short": "Same hill, same start, tilted axes",
+  "start": [
+   1.359,
+   103.7625
+  ],
+  "params": {
+   "rot": 0
+  },
+  "blurb": "AdamW rescales each axis on its own, so its result depends on which way the axes point. SGD, Momentum and Muon do not care. Rotating does not always hurt AdamW, it just changes where it goes.",
+  "watch": "AdamW reaching the 128 m hill with the others. Drag Rotate axes to 45\u00b0 and it ends on a flat spot at 103 m while the others do not move. At 90\u00b0 the axes are just swapped, so AdamW is back to normal.",
+  "cell": [
+   584,
+   417
+  ]
+ },
+ {
+  "id": "noise",
+  "title": "Noise shakes SGD loose",
+  "short": "Random kicks get it off a flat spot",
+  "start": [
+   1.3617,
+   103.75
+  ],
+  "params": {
+   "sigma": 0.03,
+   "cos": true
+  },
+  "blurb": "Each step's slope gets a random error. That can knock a climber off a small bump and onto a bigger hill. Cosine decay then calms the steps so it can settle.",
+  "watch": "the red circle ending on the 128 m hill. Set noise back to 0 and it stays on the flat spot at 103 m.",
+  "cell": [
+   540,
+   408
+  ]
+ },
+ {
+  "id": "blur",
+  "title": "Blur finds the big hill",
+  "short": "Blur the map, then sharpen as you climb",
+  "start": [
+   1.3722,
+   103.7728
+  ],
+  "params": {
+   "blur": 3,
+   "anneal": true
+  },
+  "blurb": "On the blurred map the small hills vanish and only the big one is left. The blur fades as the climbers walk, so they head for Bukit Timah first and settle on its real top.",
+  "watch": "all four reaching Bukit Timah. Drag Blur to off and replay: they stop on a 42 m hill.",
+  "cell": [
+   622,
+   370
+  ]
+ },
+ {
+  "id": "muon",
+  "title": "Muon never settles",
+  "short": "Fixed-length steps keep hopping at the top",
+  "start": [
+   1.3553,
+   103.7783
+  ],
+  "params": {
+   "lr": 3000,
+   "cos": true
+  },
+  "blurb": "Muon takes a step of fixed length however small the slope is. Here that is about 60 m. It reaches the top, then keeps hopping back and forth over it. Cosine decay shrinks the step so it can land.",
+  "watch": "the green scribble around the star, then the diamond landing on it. Untick cosine decay and it keeps hopping around the top forever.",
+  "cell": [
+   634,
+   431
+  ],
+  "show": [
+   "muon"
+  ],
+  "focus": {
+   "cell": [
+    631,
+    431
+   ],
+   "k": 14
+  }
+ },
+ {
+  "id": "plains",
+  "title": "Lost on the plains",
+  "short": "Gentle slopes starve plain gradient steps",
+  "start": [
+   1.3526,
+   103.9453
+  ],
+  "params": {
+   "lr": 30
+  },
+  "blurb": "Plain gradient steps are proportional to the slope, so on a gentle slope SGD crawls. AdamW and Muon throw the slope size away and keep moving at a steady pace.",
+  "watch": "the red circle falling behind. At the end SGD is still climbing near 23 m while the rest sit on the 74 m hill. Check the Height over steps chart too.",
+  "cell": [
+   698,
+   494
+  ]
+ }
+]
